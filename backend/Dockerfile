@@ -2,11 +2,11 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Dependencies'leri yükle
+# Dependencies
 COPY package*.json ./
 RUN npm ci
 
-# Prisma schema'sı
+# Prisma
 COPY prisma ./prisma
 RUN npx prisma generate
 
@@ -14,12 +14,13 @@ RUN npx prisma generate
 COPY tsconfig.json ./
 COPY src ./src
 
-# Build
+# Build TypeScript
 RUN npm run build
 
-# Database dizini
+# Database
 RUN mkdir -p /app/database
 
 EXPOSE 3001
 
-CMD ["sh", "-c", "npx prisma migrate deploy --skip-generate && node dist/index.js"]
+# Migrations and start
+CMD ["sh", "-c", "npx prisma migrate deploy --skip-generate 2>/dev/null || true && node dist/index.js"]
