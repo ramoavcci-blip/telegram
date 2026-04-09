@@ -1,46 +1,25 @@
-# Build aşaması
-FROM node:20-alpine AS builder
-
-WORKDIR /app
-
-# Bağımlılıkları yükle
-COPY package*.json ./
-RUN npm ci
-
-# Prisma client oluştur
-COPY prisma ./prisma
-RUN npx prisma generate
-
-# TypeScript'i derle
-COPY tsconfig.json ./
-COPY src ./src
-RUN npm run build || npx tsc
-
-# Production aşaması
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Production bağımlılıkları yükle
+# Dependencies'leri yükle
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm ci
 
-# Prisma client'i kopyala
+# Prisma schema'sı
 COPY prisma ./prisma
 RUN npx prisma generate
 
-# Build edilen JS dosyalarını kopyala
-COPY --from=builder /app/dist ./dist
+# Source code
+COPY tsconfig.json ./
+COPY src ./src
 
-# Database dizini oluştur
+# Build
+RUN npm run build
+
+# Database dizini
 RUN mkdir -p /app/database
 
-# Port'u expose et
 EXPOSE 3001
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3001', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
-
-# Uygulamayı başlat
-CMD ["node", "dist/index.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy --skip-generate && node dist/index.js"]
