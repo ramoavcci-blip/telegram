@@ -1,0 +1,99 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  telegramId String? @unique
+  username  String?  @unique
+  name      String
+  password  String   // Store hashed password for admin login
+  role      String   @default("OBSERVER") // SUPERADMIN, ADMIN, MODERATOR, OBSERVER
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  auditLogs AuditLog[]
+}
+
+model Candidate {
+  id             Int       @id @default(autoincrement())
+  telegramId     String?   @unique
+  username       String?
+  displayName    String
+  age            Int?
+  reason         String?
+  experience     String?
+  activeTime     String?
+  extraInfo      String?
+  
+  applicationLogs Application[]
+  status         String    @default("PENDING") // PENDING, APPROVED, REJECTED, BLACKLISTED
+  notes          String?
+  isHidden       Boolean   @default(false)
+  photoUrl       String?
+  
+  votes          Vote[]
+  
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model Application {
+  id          Int      @id @default(autoincrement())
+  candidateId Int
+  candidate   Candidate @relation(fields: [candidateId], references: [id])
+  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED, BLACKLISTED
+  notes       String?
+  createdAt   DateTime @default(now())
+}
+
+model Election {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  startTime   DateTime?
+  endTime     DateTime?
+  status      String   @default("DRAFT") // DRAFT, ACTIVE, ENDED, CANCELLED
+  
+  // Rules
+  votesPerUser      Int     @default(1)
+  canChangeVote     Boolean @default(false)
+  isSecret          Boolean @default(false)
+  minParticipation  Int     @default(0)
+  
+  votes       Vote[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Vote {
+  id          Int      @id @default(autoincrement())
+  electionId  Int
+  election    Election @relation(fields: [electionId], references: [id])
+  candidateId Int
+  candidate   Candidate @relation(fields: [candidateId], references: [id])
+  voterTgId   String   // The telegram ID of the voter
+  
+  createdAt   DateTime @default(now())
+
+  @@unique([electionId, voterTgId]) // If votesPerUser is 1. If more, we handle via code.
+}
+
+model Settings {
+  key   String @id
+  value String
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
+}

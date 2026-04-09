@@ -1,0 +1,15 @@
+{
+  "name": "telegramadmin",
+  "version": "1.0.0",
+  "description": "Telegram Admin & Voting System",
+  "main": "index.js",
+  "scripts": {
+    "install-all": "cd backend && npm install && cd ../frontend && npm install",
+    "start": "concurrently \"npm run start-backend\" \"npm run start-frontend\"",
+    "start-backend": "cd backend && npx ts-node src/index.ts",
+    "start-frontend": "cd frontend && npm run dev"
+  },
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

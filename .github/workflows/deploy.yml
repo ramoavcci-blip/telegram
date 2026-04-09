@@ -1,0 +1,33 @@
+name: Deploy to Coolify on Push
+
+on:
+  push:
+    branches:
+      - main
+      - production
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Deploy via Coolify Webhook
+        run: |
+          curl -X POST \
+            "${{ secrets.COOLIFY_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{"ref":"${{ github.ref }}"}'
+        
+        env:
+          CI: true
+
+      - name: Verify deployment
+        run: |
+          echo "Deployment webhook sent successfully!"
+          echo "Check Coolify dashboard for deployment status"
