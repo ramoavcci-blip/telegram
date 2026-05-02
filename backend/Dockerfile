@@ -20,7 +20,7 @@ RUN npm run build
 # Database
 RUN mkdir -p /app/database
 
-EXPOSE 3001
+EXPOSE 3005
 
 # Migrations and start
 CMD ["sh", "-c", "npx prisma migrate deploy --skip-generate 2>/dev/null || true && node dist/index.js"]

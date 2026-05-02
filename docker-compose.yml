@@ -19,7 +19,7 @@ services:
     networks:
       - app-network
     ports:
-      - "3001:3001"
+      - "3005:3005"
 
   frontend:
     build:
